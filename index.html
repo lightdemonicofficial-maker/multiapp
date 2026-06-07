@@ -278,7 +278,7 @@
                 <button onclick="showModal('video-modal')" class="btn px-4 py-1.5 text-xs btn-primary hover:shadow-lg">Change Video</button>
             </div>
             <div class="h-full pb-2 pt-2 px-3">
-                <iframe id="youtube-player" class="w-full h-full rounded-xl" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <iframe id="youtube-player" class="w-full h-full rounded-xl" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
             <div class="resize-handle" data-resize></div>
         </div>
@@ -468,7 +468,6 @@
             const header = window.querySelector('.window-header');
             const resizeHandle = window.querySelector('.resize-handle');
 
-            // Dragging
             header.addEventListener('mousedown', (e) => {
                 if (e.target.closest('button')) return;
                 activeWindow = window;
@@ -481,7 +480,6 @@
                 e.preventDefault();
             });
 
-            // Resizing
             resizeHandle.addEventListener('mousedown', (e) => {
                 activeWindow = window;
                 activeAction = 'resize';
@@ -535,14 +533,32 @@
         }
 
         // ==================== VIDEO PLAYER ====================
+        function setVideoSource(videoId) {
+            const origin = window.location.origin || 'http://localhost';
+            document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}`;
+        }
+
         function changeVideoFromModal() {
             const url = document.getElementById('video-url-input').value;
-            let videoId = url.split('v=')[1];
-            if (videoId) {
+            let videoId = '';
+            
+            if (url.includes('v=')) {
+                videoId = url.split('v=')[1];
                 const ampersandPosition = videoId.indexOf('&');
                 if (ampersandPosition != -1) videoId = videoId.substring(0, ampersandPosition);
-                document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}`;
+            } else if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('embed/')) {
+                videoId = url.split('embed/')[1].split('?')[0];
+            } else {
+                videoId = url; // assume direct ID entry
+            }
+
+            if (videoId.trim()) {
+                setVideoSource(videoId.trim());
                 showToast("Video updated!");
+            } else {
+                showToast("Invalid URL or Video ID", "error");
             }
             hideModal('video-modal');
         }
@@ -708,8 +724,11 @@
             }
         }
 
-        // Initialize display
-        updateCardDisplay();
+        // Initialize default systems on load
+        window.addEventListener('DOMContentLoaded', () => {
+            setVideoSource('jfKfPfyJRdk'); // Initial low-fi study track
+            updateCardDisplay();
+        });
     </script>
 </body>
 </html>
