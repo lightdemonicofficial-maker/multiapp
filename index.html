@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All-in-One Study Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #fdf6e3 0%, #faedcd 50%, #f5e6d3 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .window {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(10px);
+            transition: box-shadow 0.2s ease;
+        }
+        
+        .window:hover {
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.08);
+        }
+        
+        .window-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            cursor: move;
+            user-select: none;
+        }
+        
+        .window-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #4a4a4a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .resize-handle {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            bottom: 0;
+            right: 0;
+            cursor: se-resize;
+            background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.1) 50%);
+            border-radius: 0 0 16px 0;
+        }
+        
+        .flashcard {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            border-radius: 12px;
+        }
+        
+        .flashcard-front {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d4edda 100%);
+        }
+        
+        .flashcard-back {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe5b4 100%);
+            transform: rotateY(180deg);
+        }
+        
+        .task-item {
+            transition: all 0.2s ease;
+        }
+        
+        .task-item.completed {
+            opacity: 0.5;
+        }
+        
+        .task-item.completed span {
+            text-decoration: line-through;
+        }
+        
+        .timer-display {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .btn {
+            transition: all 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Window: YouTube Player -->
+    <div id="window-youtube" class="window" style="left: 20%; top: 15%; width: 50%; height: 50%; z-index: 10;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                Video Player
+            </span>
+            <button onclick="changeVideo()" class="btn px-3 py-1 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600">Change Video</button>
+        </div>
+        <div class="h-full pb-12 pt-2 px-2">
+            <iframe id="youtube-player" class="w-full h-full rounded-lg" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- Window: Timer & Streak -->
+    <div id="window-timer" class="window" style="left: 5%; top: 5%; width: 280px; height: 220px; z-index: 5;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Focus Timer
+            </span>
+        </div>
+        <div class="p-4 pt-2">
+            <div class="text-center mb-4">
+                <div id="timer-display" class="timer-display text-5xl font-bold text-gray-700 mb-2">25:00</div>
+                <div id="timer-status" class="text-sm text-gray-500">Ready to focus</div>
+            </div>
+            <div class="flex justify-center gap-2 mb-4">
+                <button onclick="startTimer()" class="btn px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium">Start</button>
+                <button onclick="pauseTimer()" class="btn px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm font-medium">Pause</button>
+                <button onclick="resetTimer()" class="btn px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 text-sm font-medium">Reset</button>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-gray-200">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🔥</span>
+                    <div>
+                        <div class="text-xs text-gray-500">Streak</div>
+                        <div id="streak-count" class="font-bold text-orange-500">0 days</div>
+                    </div>
+                </div>
+                <select id="timer-mode" onchange="changeTimerMode()" class="text-sm border border-gray-300 rounded-lg px-2 py-1 bg-white">
+                    <option value="25">Pomodoro (25)</option>
+                    <option value="5">Short Break (5)</option>
+                    <option value="15">Long Break (15)</option>
+                </select>
+            </div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- Window: Task Manager -->
+    <div id="window-tasks" class="window" style="right: 5%; top: 5%; width: 300px; height: 280px; z-index: 5;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                Tasks
+            </span>
+            <button onclick="clearCompletedTasks()" class="btn text-xs text-gray-500 hover:text-gray-700">Clear Done</button>
+        </div>
+        <div class="p-3 pt-2 h-full flex flex-col">
+            <div class="flex gap-2 mb-3">
+                <input type="text" id="task-input" placeholder="Add a task..." class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" onkeypress="if(event.key==='Enter')addTask()">
+                <button onclick="addTask()" class="btn px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </button>
+            </div>
+            <div id="task-list" class="flex-1 overflow-y-auto space-y-2"></div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- Window: Notes -->
+    <div id="window-notes" class="window" style="left: 5%; bottom: 5%; width: 45%; height: 35%; z-index: 5;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                Notes
+            </span>
+            <span id="notes-saved" class="text-xs text-green-500 opacity-0 transition-opacity">✓ Saved</span>
+        </div>
+        <div class="p-3 pt-2 h-full">
+            <textarea id="notes-content" class="w-full h-full resize-none p-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white" placeholder="Take notes while watching..."></textarea>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+
+    <!-- Window: Flashcards -->
+    <div id="window-flashcards" class="window" style="right: 5%; bottom: 5%; width: 350px; height: 320px; z-index: 5;">
+        <div class="window-header">
+            <span class="window-title">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                Flashcards
+            </span>
+            <div class="flex gap-1">
+                <button onclick="addFlashcard()" class="btn text-xs px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600">+ Add</button>
+                <button onclick="editFlashcards()" class="btn text-xs px-2 py-1 bg-purple-500 text-white rounded hover:bg-purple-600">Edit</button>
+            </div>
+        </div>
+        <div class="p-4 pt-2 h-full flex flex-col">
+            <div id="flashcard-container" class="flashcard flex-1 mb-4">
+                <div class="flashcard-inner" id="flashcard-inner">
+                    <div class="flashcard-front">
+                        <div>
+                            <div class="text-xs text-gray-500 mb-2">Front</div>
+                            <div id="flashcard-front-text" class="font-medium text-gray-800">Click to flip</div>
+                        </div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div>
+                            <div class="text-xs text-gray-500 mb-2">Back</div>
+                            <div id="flashcard-back-text" class="font-medium text-gray-800">Add your flashcards to get started</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <button onclick="previousCard()" class="btn px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">← Previous</button>
+                <span id="flashcard-counter" class="text-sm text-gray-500">0 / 0</span>
+                <button onclick="nextCard()" class="btn px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">Next →</button>
+            </div>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+
+    <script>
+        // ==================== WINDOW DRAGGING & RESIZING ====================
+        let activeWindow = null;
+        let activeAction = null;
+        let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+        document.querySelectorAll('.window').forEach(window => {
+            const header = window.querySelector('.window-header');
+            const resizeHandle = window.querySelector('.resize-handle');
+
+            // Dragging
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button')) return;
+                activeWindow = window;
+                activeAction = 'drag';
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = window.offsetLeft;
+                startTop = window.offsetTop;
+                bringToFront(window);
+                e.preventDefault();
+            });
+
+            // Resizing
+            resizeHandle.addEventListener('mousedown', (e) => {
+                activeWindow = window;
+                activeAction = 'resize';
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = window.offsetWidth;
+                startHeight = window.offsetHeight;
+                bringToFront(window);
+                e.preventDefault();
+            });
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!activeWindow || !activeAction) return;
+
+            if (activeAction === 'drag') {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                activeWindow.style.left = `${startLeft + dx}px`;
+                activeWindow.style.top = `${startTop + dy}px`;
+            } else if (activeAction === 'resize') {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                activeWindow.style.width = `${Math.max(200, startWidth + dx)}px`;
+                activeWindow.style.height = `${Math.max(150, startHeight + dy)}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (activeWindow) {
+                saveWindowPosition(activeWindow.id);
+            }
+            activeWindow = null;
+            activeAction = null;
+        });
+
+        function bringToFront(window) {
+            document.querySelectorAll('.window').forEach(w => w.style.zIndex = 5);
+            window.style.zIndex = 10;
+        }
+
+        // ==================== LOCAL STORAGE HELPERS ====================
+        function saveToStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function loadFromStorage(key, defaultValue) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : defaultValue;
+        }
+
+        function saveWindowPosition(windowId) {
+            const window = document.getElementById(windowId);
+            const positions = loadFromStorage('windowPositions', {});
+            positions[windowId] = {
+                left: window.style.left,
+                top: window.style.top,
+                width: window.style.width,
+                height: window.style.height
+            };
+            saveToStorage('windowPositions', positions);
+        }
+
+        function loadWindowPositions() {
+            const positions = loadFromStorage('windowPositions', {});
+            Object.entries(positions).forEach(([id, pos]) => {
+                const window = document.getElementById(id);
+                if (window) {
+                    window.style.left = pos.left;
+                    window.style.top = pos.top;
+                    window.style.width = pos.width;
+                    window.style.height = pos.height;
+                }
+            });
+        }
+
+        // ==================== TIMER ====================
+        let timerInterval = null;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let currentMode = 25;
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-display').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('timer-status').textContent = 'Focusing...';
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    saveTimerState();
+                } else {
+                    completeTimer();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('timer-status').textContent = 'Paused';
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeLeft = currentMode * 60;
+            updateTimerDisplay();
+            document.getElementById('timer-status').textContent = 'Ready to focus';
+            saveTimerState();
+        }
+
+        function changeTimerMode() {
+            currentMode = parseInt(document.getElementById('timer-mode').value);
+            resetTimer();
+        }
+
+        function completeTimer() {
+            pauseTimer();
+            new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+            document.getElementById('timer-status').textContent = 'Time\'s up!';
+            
+            // Update streak if it's a pomodoro session
+            if (currentMode === 25) {
+                updateStreak();
+            }
+        }
+
+        function updateStreak() {
+            const today = new Date().toDateString();
+            const lastStudyDate = loadFromStorage('lastStudyDate', null);
+            let streak = loadFromStorage('studyStreak', 0);
+            
+            if (lastStudyDate !== today) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (lastStudyDate === yesterday.toDateString()) {
+                    streak++;
+                } else if (lastStudyDate !== today) {
+                    streak = 1;
+                }
+                
+                saveToStorage('studyStreak', streak);
+                saveToStorage('lastStudyDate', today);
+                updateStreakDisplay(streak);
+            }
+        }
+
+        function updateStreakDisplay(streak) {
+            document.getElementById('streak-count').textContent = `${streak} day${streak !== 1 ? 's' : ''}`;
+        }
+
+        function saveTimerState() {
+            saveToStorage('timerState', {
+                timeLeft,
+                isRunning,
+                currentMode
+            });
+        }
+
+        function loadTimerState() {
+            const state = loadFromStorage('timerState', null);
+            if (state) {
+                timeLeft = state.timeLeft;
+                currentMode = state.currentMode;
+                document.getElementById('timer-mode').value = currentMode;
+                updateTimerDisplay();
+                if (state.isRunning) {
+                    startTimer();
+                }
+            }
+            updateStreakDisplay(loadFromStorage('studyStreak', 0));
+        }
+
+        // ==================== TASKS ====================
+        let tasks = [];
+
+        function addTask() {
+            const input = document.getElementById('task-input');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            tasks.push({ id: Date.now(), text, completed: false });
+            input.value = '';
+            renderTasks();
+            saveTasks();
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(task => 
+                task.id === id ? { ...task, completed: !task.completed } : task
+            );
+            renderTasks();
+            saveTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(task => task.id !== id);
+            renderTasks();
+            saveTasks();
+        }
+
+        function clearCompletedTasks() {
+            tasks = tasks.filter(task => !task.completed);
+            renderTasks();
+            saveTasks();
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = tasks.map(task => `
+                <div class="task-item ${task.completed ? 'completed' : ''} flex items-center gap-2 p-2 bg-gray-50 rounded-lg group">
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                        onchange="toggleTask(${task.id})"
+                        class="w-4 h-4 text-blue-500 rounded focus:ring-blue-400">
+                    <span class="flex-1 text-sm text-gray-700">${escapeHtml(task.text)}</span>
+                    <button onclick="deleteTask(${task.id})" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function saveTasks() {
+            saveToStorage('tasks', tasks);
+        }
+
+        function loadTasks() {
+            tasks = loadFromStorage('tasks', []);
+            renderTasks();
+        }
+
+        // ==================== NOTES ====================
+        let notesSaveTimeout = null;
+
+        document.getElementById('notes-content').addEventListener('input', () => {
+            clearTimeout(notesSaveTimeout);
+            notesSaveTimeout = setTimeout(() => {
+                saveNotes();
+                showSavedIndicator();
+            }, 500);
+        });
+
+        function saveNotes() {
+            const content = document.getElementById('notes-content').value;
+            saveToStorage('notes', content);
+        }
+
+        function loadNotes() {
+            const notes = loadFromStorage('notes', '');
+            document.getElementById('notes-content').value = notes;
+        }
+
+        function showSavedIndicator() {
+            const indicator = document.getElementById('notes-saved');
+            indicator.style.opacity = '1';
+            setTimeout(() => {
+                indicator.style.opacity = '0';
+            }, 1500);
+        }
+
+        // ==================== FLASHCARDS ====================
+        let flashcards = [];
+        let currentCardIndex = 0;
+
+        document.getElementById('flashcard-container').addEventListener('click', () => {
+            document.getElementById('flashcard-container').classList.toggle('flipped');
+        });
+
+        function addFlashcard() {
+            const front = prompt('Enter front of card:');
+            if (!front) return;
+            const back = prompt('Enter back of card:');
+            if (!back) return;
+            
+            flashcards.push({ front, back });
+            currentCardIndex = flashcards.length - 1;
+            renderFlashcard();
+            saveFlashcards();
+        }
+
+        function editFlashcards() {
+            const editorContent = flashcards.map((card, i) => 
+                `Card ${i + 1}:\nFront: ${card.front}\nBack: ${card.back}\n---`
+            ).join('\n\n') || 'No cards yet. Add some!';
+            
+            const newContent = prompt('Edit flashcards (format: Front\\nBack\\n---):', editorContent);
+            if (newContent === null) return;
+            
+            flashcards = newContent.split('---')
+                .map(block => block.trim())
+                .filter(block => block)
+                .map(block => {
+                    const lines = block.split('\n');
+                    const front = lines.find(l => l.startsWith('Front:'))?.replace('Front:', '').trim() || '';
+                    const back = lines.find(l => l.startsWith('Back:'))?.replace('Back:', '').trim() || '';
+                    return { front, back };
+                })
+                .filter(card => card.front || card.back);
+            
+            currentCardIndex = Math.min(currentCardIndex, Math.max(0, flashcards.length - 1));
+            renderFlashcard();
+            saveFlashcards();
+        }
+
+        function nextCard() {
+            if (flashcards.length === 0) return;
+            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+            renderFlashcard();
+        }
+
+        function previousCard() {
+            if (flashcards.length === 0) return;
+            currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            const container = document.getElementById('flashcard-container');
+            container.classList.remove('flipped');
+            
+            setTimeout(() => {
+                if (flashcards.length > 0) {
+                    const card = flashcards[currentCardIndex];
+                    document.getElementById('flashcard-front-text').textContent = card.front;
+                    document.getElementById('flashcard-back-text').textContent = card.back;
+                    document.getElementById('flashcard-counter').textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
+                } else {
+                    document.getElementById('flashcard-front-text').textContent = 'Click to flip';
+                    document.getElementById('flashcard-back-text').textContent = 'Add your flashcards to get started';
+                    document.getElementById('flashcard-counter').textContent = '0 / 0';
+                }
+            }, 150);
+        }
+
+        function saveFlashcards() {
+            saveToStorage('flashcards', { cards: flashcards, currentIndex: currentCardIndex });
+        }
+
+        function loadFlashcards() {
+            const data = loadFromStorage('flashcards', { cards: [], currentIndex: 0 });
+            flashcards = data.cards;
+            currentCardIndex = data.currentIndex;
+            renderFlashcard();
+        }
+
+        // ==================== YOUTUBE VIDEO ====================
+        function changeVideo() {
+            const url = prompt('Enter YouTube URL:');
+            if (!url) return;
+            
+            const videoId = extractVideoId(url);
+            if (videoId) {
+                document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                saveToStorage('youtubeVideo', videoId);
+            } else {
+                alert('Invalid YouTube URL');
+            }
+        }
+
+        function extractVideoId(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+                /youtube\.com\/embed\/([^&\n?#]+)/,
+                /youtube\.com\/v\/([^&\n?#]+)/
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            return null;
+        }
+
+        function loadYoutubeVideo() {
+            const videoId = loadFromStorage('youtubeVideo', 'dQw4w9WgXcQ');
+            document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        // ==================== UTILITIES ====================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWindowPositions();
+            loadTimerState();
+            loadTasks();
+            loadNotes();
+            loadFlashcards();
+            loadYoutubeVideo();
+        });
+    </script>
+</body>
+</html>
