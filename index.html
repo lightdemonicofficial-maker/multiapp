@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow - All-in-One Study Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #fdf6e3 0%, #faedcd 50%, #f5e6d3 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .window {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            backdrop-filter: blur(20px);
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+            overflow: hidden;
+        }
+        
+        .window:hover {
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+        }
+        
+        .window.focused {
+            box-shadow: 0 16px 56px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(99, 102, 241, 0.3);
+            z-index: 50 !important;
+        }
+        
+        .window-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: linear-gradient(180deg, rgba(249, 250, 251, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            cursor: move;
+            user-select: none;
+        }
+        
+        .window-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.01em;
+        }
+        
+        .resize-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            bottom: 0;
+            right: 0;
+            cursor: se-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .window:hover .resize-handle {
+            opacity: 1;
+        }
+        
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid rgba(0,0,0,0.2);
+            border-bottom: 2px solid rgba(0,0,0,0.2);
+            border-radius: 0 0 4px 0;
+        }
+        
+        .streak-container {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .streak-flame {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(234, 88, 12, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .streak-flame:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.5);
+        }
+        
+        .flashcard {
+            perspective: 1200px;
+            cursor: pointer;
+        }
+        
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            text-align: center;
+            border-radius: 16px;
+            background: white;
+        }
+        
+        .flashcard-front {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        .flashcard-back {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            transform: rotateY(180deg);
+            border: 1px solid rgba(245, 158, 11, 0.1);
+        }
+        
+        .task-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .task-item.completed {
+            opacity: 0.5;
+        }
+        
+        .task-item.completed span {
+            text-decoration: line-through;
+        }
+        
+        .timer-display {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+        }
+        
+        .btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        
+        .markdown-body { line-height: 1.7; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1em; margin-bottom: 0.5em; font-weight: 600; }
+        .markdown-body p { margin-bottom: 0.75em; }
+        .markdown-body code { background: rgba(0, 0, 0, 0.06); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+        .markdown-body pre { background: #1e293b; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 0.75em 0; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5em; margin-bottom: 0.75em; list-style-type: disc; }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal {
+            background: white; border-radius: 20px; padding: 28px;
+            max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
+            transform: scale(0.9) translateY(20px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .modal-overlay.active .modal { transform: scale(1) translateY(0); }
+        .modal-header { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #1f2937; }
+        .modal-input {
+            width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb;
+            border-radius: 12px; font-size: 15px; transition: all 0.2s; margin-bottom: 12px;
+        }
+        .modal-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        textarea.modal-input { min-height: 120px; resize: vertical; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.04); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+        
+        .page {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #fdf6e3 0%, #faedcd 50%, #f5e6d3 100%);
+            display: none; z-index: 100;
+        }
+        .page.active { display: block; }
+        
+        .nav-bar {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 8px 16px; display: flex; gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); z-index: 200;
+        }
+        .nav-btn {
+            padding: 10px 20px; border-radius: 12px; font-weight: 500; font-size: 14px;
+            transition: all 0.2s; background: transparent; color: #6b7280;
+        }
+        .nav-btn:hover { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        
+        .fsrs-rating { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+        .fsrs-btn {
+            padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px;
+            transition: all 0.2s; border: 2px solid transparent;
+        }
+        .fsrs-btn-again { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+        .fsrs-btn-hard { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
+        .fsrs-btn-good { background: #dbeafe; color: #2563eb; border-color: #93c5fd; }
+        .fsrs-btn-easy { background: #d1fae5; color: #059669; border-color: #6ee7b7; }
+        .fsrs-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        
+        .toast {
+            position: fixed; bottom: 100px; right: 24px; background: white;
+            padding: 14px 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            display: flex; align-items: center; gap: 10px; transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1001;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body class="p-4">
+    <div id="dashboard" class="page active">
+        <div id="window-youtube" class="window" style="left: 20%; top: 12%; width: 55%; height: 55%; z-index: 10;">
+            <div class="window-header">
+                <span class="window-title">
+                    <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    Video Player
+                </span>
+                <button onclick="showModal('video-modal')" class="btn px-4 py-1.5 text-xs btn-primary hover:shadow-lg">Change Video</button>
+            </div>
+            <div class="h-full pb-2 pt-2 px-3">
+                <iframe id="youtube-player" class="w-full h-full rounded-xl" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            <div class="resize-handle" data-resize></div>
+        </div>
+
+        <div id="window-timer" class="window" style="left: 5%; top: 5%; width: 300px; height: 260px; z-index: 5;">
+            <div class="window-header">
+                <span class="window-title">
+                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Focus Timer
+                </span>
+            </div>
+            <div class="p-5 pt-3">
+                <div class="text-center mb-5">
+                    <div id="timer-display" class="timer-display text-6xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">25:00</div>
+                    <div id="timer-status" class="text-sm text-gray-500 font-medium">Ready to focus</div>
+                </div>
+                <div class="flex justify-center gap-2 mb-5">
+                    <button onclick="startTimer()" class="btn px-5 py-2.5 btn-success text-sm font-semibold shadow-md">Start</button>
+                    <button onclick="pauseTimer()" class="btn px-5 py-2.5 btn-warning text-sm font-semibold shadow-md">Pause</button>
+                    <button onclick="resetTimer()" class="btn px-5 py-2.5 bg-gray-400 text-white text-sm font-semibold shadow-md hover:bg-gray-500">Reset</button>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                    <div class="streak-container">
+                        <div id="streak-flames">🔥 1</div>
+                    </div>
+                    <select id="timer-mode" onchange="changeTimerMode()" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white font-medium text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        <option value="25">Pomodoro (25)</option>
+                        <option value="5">Short Break (5)</option>
+                        <option value="15">Long Break (15)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="resize-handle" data-resize></div>
+        </div>
+
+        <div id="window-tasks" class="window" style="right: 5%; top: 5%; width: 320px; height: 300px; z-index: 5;">
+            <div class="window-header">
+                <span class="window-title">
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    Tasks
+                </span>
+                <button onclick="clearCompletedTasks()" class="btn text-xs text-gray-400 hover:text-gray-600 font-medium">Clear Done</button>
+            </div>
+            <div class="p-4 pt-3 h-full flex flex-col">
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="task-input" placeholder="Add a task..." class="flex-1 px-4 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent" onkeypress="if(event.key==='Enter')addTask()">
+                    <button onclick="addTask()" class="btn px-4 py-2.5 btn-success shadow-md">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </button>
+                </div>
+                <div id="task-list" class="flex-1 overflow-y-auto space-y-2 pr-1 pb-10"></div>
+            </div>
+            <div class="resize-handle" data-resize></div>
+        </div>
+
+        <div id="window-notes" class="window flex flex-col" style="left: 5%; bottom: 5%; width: 50%; height: 38%; z-index: 5;">
+            <div class="window-header">
+                <span class="window-title">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    Notes
+                </span>
+                <div class="flex gap-2">
+                    <button onclick="toggleNoteView()" class="btn text-xs px-3 py-1.5 bg-gray-100 text-gray-600 font-medium" id="note-view-toggle">Preview</button>
+                </div>
+            </div>
+            <div class="p-3 pt-2 flex-1 flex flex-col overflow-hidden">
+                <textarea id="notes-content" class="w-full flex-1 resize-none p-4 text-sm border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 font-mono" placeholder="Write your notes in Markdown..."># My First Note&#10;Write markdown here!</textarea>
+                <div id="notes-preview" class="w-full flex-1 overflow-y-auto p-4 markdown-body hidden bg-white rounded-xl"></div>
+            </div>
+            <div class="resize-handle" data-resize></div>
+        </div>
+
+        <div id="window-flashcards" class="window" style="right: 5%; bottom: 5%; width: 380px; height: 350px; z-index: 5;">
+            <div class="window-header">
+                <span class="window-title">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    Flashcards
+                </span>
+                <button onclick="navigateToPage('flashcards-page')" class="btn text-xs px-4 py-1.5 btn-primary font-medium">Open Full</button>
+            </div>
+            <div class="p-5 pt-3 h-full flex flex-col">
+                <div id="flashcard-container-mini" class="flashcard flex-1 mb-4" onclick="flipCard()">
+                    <div class="flashcard-inner" id="flashcard-inner-mini">
+                        <div class="flashcard-front">
+                            <div class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Question</div>
+                            <div id="flashcard-front-text-mini" class="font-semibold text-gray-800 text-lg">No cards yet</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Answer</div>
+                            <div id="flashcard-back-text-mini" class="font-semibold text-gray-800 text-lg">Add some flashcards!</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pb-8">
+                    <button onclick="previousCard()" class="btn px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 text-sm font-medium">← Prev</button>
+                    <span id="flashcard-counter-mini" class="text-sm text-gray-400 font-medium">0 / 0</span>
+                    <button onclick="nextCard()" class="btn px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 text-sm font-medium">Next →</button>
+                </div>
+            </div>
+            <div class="resize-handle" data-resize></div>
+        </div>
+    </div>
+
+    <div id="flashcards-page" class="page">
+        <div class="h-full flex flex-col items-center justify-center p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">Flashcard Study</h1>
+                <p class="text-gray-500">Master your knowledge with spaced repetition</p>
+            </div>
+            
+            <div class="flex gap-4 mb-8">
+                <button onclick="showModal('add-card-modal')" class="btn px-6 py-3 btn-success font-semibold shadow-lg text-lg">+ Add Card</button>
+            </div>
+            
+            <div id="flashcard-container-full" class="flashcard w-full max-w-2xl h-80 mb-8" onclick="flipCard()">
+                <div class="flashcard-inner" id="flashcard-inner-full">
+                    <div class="flashcard-front shadow-2xl">
+                        <div class="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wider">Question</div>
+                        <div id="flashcard-front-text-full" class="font-semibold text-gray-800 text-2xl leading-relaxed">No cards yet</div>
+                    </div>
+                    <div class="flashcard-back shadow-2xl">
+                        <div class="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wider">Answer</div>
+                        <div id="flashcard-back-text-full" class="font-semibold text-gray-800 text-2xl leading-relaxed">Add some flashcards to start studying!</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="fsrs-controls" class="fsrs-rating hidden mb-6">
+                <button onclick="rateCard(0)" class="fsrs-btn fsrs-btn-again">Again<br><span class="text-xs opacity-70">&lt;1m</span></button>
+                <button onclick="rateCard(1)" class="fsrs-btn fsrs-btn-hard">Hard<br><span class="text-xs opacity-70">2d</span></button>
+                <button onclick="rateCard(2)" class="fsrs-btn fsrs-btn-good">Good<br><span class="text-xs opacity-70">4d</span></button>
+                <button onclick="rateCard(3)" class="fsrs-btn fsrs-btn-easy">Easy<br><span class="text-xs opacity-70">7d</span></button>
+            </div>
+            
+            <div id="study-nav" class="flex gap-4">
+                <button onclick="previousCard()" class="btn px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 font-semibold">← Previous</button>
+                <span id="flashcard-counter-full" class="text-lg text-gray-500 font-medium self-center">0 / 0</span>
+                <button onclick="nextCard()" class="btn px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 font-semibold">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" class="modal-overlay" onclick="hideModal('video-modal')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">Change Video</div>
+            <input type="text" id="video-url-input" class="modal-input" placeholder="Paste YouTube URL here...">
+            <div class="modal-actions">
+                <button onclick="hideModal('video-modal')" class="btn px-5 py-2.5 bg-gray-200 text-gray-700 font-medium">Cancel</button>
+                <button onclick="changeVideoFromModal()" class="btn px-5 py-2.5 btn-primary font-medium">Load Video</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-card-modal" class="modal-overlay" onclick="hideModal('add-card-modal')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">Add Flashcard</div>
+            <textarea id="new-card-front" class="modal-input" placeholder="Front (Question)..."></textarea>
+            <textarea id="new-card-back" class="modal-input" placeholder="Back (Answer)..."></textarea>
+            <div class="modal-actions">
+                <button onclick="hideModal('add-card-modal')" class="btn px-5 py-2.5 bg-gray-200 text-gray-700 font-medium">Cancel</button>
+                <button onclick="addCardFromModal()" class="btn px-5 py-2.5 btn-success font-medium">Add Card</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <button onclick="navigateToPage('dashboard')" class="nav-btn active" id="nav-dashboard">Dashboard</button>
+        <button onclick="navigateToPage('flashcards-page')" class="nav-btn" id="nav-flashcards-page">Flashcards</button>
+    </div>
+
+    <div id="toast" class="toast">
+        <span id="toast-message">Saved successfully!</span>
+    </div>
+
+    <script>
+        // ==================== WINDOW DRAGGING & RESIZING ====================
+        let activeWindow = null;
+        let activeAction = null;
+        let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+        function bringToFront(win) {
+            document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+            win.classList.add('focused');
+        }
+
+        document.querySelectorAll('.window').forEach(window => {
+            const header = window.querySelector('.window-header');
+            const resizeHandle = window.querySelector('.resize-handle');
+
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button')) return;
+                activeWindow = window;
+                activeAction = 'drag';
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = window.offsetLeft;
+                startTop = window.offsetTop;
+                bringToFront(window);
+                e.preventDefault();
+            });
+
+            resizeHandle.addEventListener('mousedown', (e) => {
+                activeWindow = window;
+                activeAction = 'resize';
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = window.offsetWidth;
+                startHeight = window.offsetHeight;
+                bringToFront(window);
+                e.preventDefault();
+            });
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!activeWindow || !activeAction) return;
+
+            if (activeAction === 'drag') {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                activeWindow.style.left = `${startLeft + dx}px`;
+                activeWindow.style.top = `${startTop + dy}px`;
+            } else if (activeAction === 'resize') {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                activeWindow.style.width = `${Math.max(200, startWidth + dx)}px`;
+                activeWindow.style.height = `${Math.max(150, startHeight + dy)}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            activeWindow = null;
+            activeAction = null;
+        });
+
+        // ==================== UTILS ====================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function showModal(id) { document.getElementById(id).classList.add('active'); }
+        function hideModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function navigateToPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`nav-${pageId}`).classList.add('active');
+        }
+
+        // ==================== VIDEO PLAYER ====================
+        function setVideoSource(videoId) {
+            const origin = window.location.origin || 'http://localhost';
+            document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}`;
+        }
+
+        function changeVideoFromModal() {
+            const url = document.getElementById('video-url-input').value;
+            let videoId = '';
+            
+            if (url.includes('v=')) {
+                videoId = url.split('v=')[1];
+                const ampersandPosition = videoId.indexOf('&');
+                if (ampersandPosition != -1) videoId = videoId.substring(0, ampersandPosition);
+            } else if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('embed/')) {
+                videoId = url.split('embed/')[1].split('?')[0];
+            } else {
+                videoId = url; // assume direct ID entry
+            }
+
+            if (videoId.trim()) {
+                setVideoSource(videoId.trim());
+                showToast("Video updated!");
+            } else {
+                showToast("Invalid URL or Video ID", "error");
+            }
+            hideModal('video-modal');
+        }
+
+        // ==================== TIMER ====================
+        let timerInterval;
+        let timeLeft = 25 * 60;
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            document.getElementById('timer-status').innerText = "Focusing...";
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    pauseTimer();
+                    showToast("Time is up!", "success");
+                    document.getElementById('timer-status').innerText = "Done!";
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('timer-status').innerText = "Paused";
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            changeTimerMode();
+            document.getElementById('timer-status').innerText = "Ready to focus";
+        }
+
+        function changeTimerMode() {
+            const mode = document.getElementById('timer-mode').value;
+            timeLeft = parseInt(mode) * 60;
+            updateTimerDisplay();
+            pauseTimer();
+        }
+
+        // ==================== TASKS ====================
+        let tasks = [];
+
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = '';
+            tasks.forEach((t, i) => {
+                list.innerHTML += `
+                    <div class="task-item p-2 border border-gray-100 rounded-lg flex items-center gap-2 cursor-pointer ${t.done ? 'completed' : ''}" onclick="toggleTask(${i})">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} class="w-4 h-4 text-emerald-500 rounded border-gray-300">
+                        <span class="text-sm text-gray-700">${t.text}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function addTask() {
+            const input = document.getElementById('task-input');
+            if (input.value.trim()) {
+                tasks.push({ text: input.value.trim(), done: false });
+                input.value = '';
+                renderTasks();
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].done = !tasks[index].done;
+            renderTasks();
+        }
+
+        function clearCompletedTasks() {
+            tasks = tasks.filter(t => !t.done);
+            renderTasks();
+        }
+
+        // ==================== NOTES ====================
+        let isPreview = false;
+        function toggleNoteView() {
+            isPreview = !isPreview;
+            const textarea = document.getElementById('notes-content');
+            const preview = document.getElementById('notes-preview');
+            const btn = document.getElementById('note-view-toggle');
+            
+            if (isPreview) {
+                preview.innerHTML = marked.parse(textarea.value);
+                textarea.classList.add('hidden');
+                preview.classList.remove('hidden');
+                btn.innerText = 'Edit';
+                btn.classList.add('bg-blue-100', 'text-blue-700');
+            } else {
+                textarea.classList.remove('hidden');
+                preview.classList.add('hidden');
+                btn.innerText = 'Preview';
+                btn.classList.remove('bg-blue-100', 'text-blue-700');
+            }
+        }
+
+        // ==================== FLASHCARDS ====================
+        let flashcards = [{front: "What does HTML stand for?", back: "HyperText Markup Language"}];
+        let currentCard = 0;
+        let isFlipped = false;
+
+        function updateCardDisplay() {
+            if (flashcards.length === 0) return;
+            document.getElementById('flashcard-front-text-mini').innerText = flashcards[currentCard].front;
+            document.getElementById('flashcard-back-text-mini').innerText = flashcards[currentCard].back;
+            document.getElementById('flashcard-counter-mini').innerText = `${currentCard + 1} / ${flashcards.length}`;
+            
+            document.getElementById('flashcard-front-text-full').innerText = flashcards[currentCard].front;
+            document.getElementById('flashcard-back-text-full').innerText = flashcards[currentCard].back;
+            document.getElementById('flashcard-counter-full').innerText = `${currentCard + 1} / ${flashcards.length}`;
+            
+            isFlipped = false;
+            document.getElementById('flashcard-container-mini').classList.remove('flipped');
+            document.getElementById('flashcard-container-full').classList.remove('flipped');
+            document.getElementById('fsrs-controls').classList.add('hidden');
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const action = isFlipped ? 'add' : 'remove';
+            document.getElementById('flashcard-container-mini').classList[action]('flipped');
+            document.getElementById('flashcard-container-full').classList[action]('flipped');
+            
+            if (isFlipped && document.getElementById('flashcards-page').classList.contains('active')) {
+                document.getElementById('fsrs-controls').classList.remove('hidden');
+            } else {
+                document.getElementById('fsrs-controls').classList.add('hidden');
+            }
+        }
+
+        function nextCard() {
+            if (currentCard < flashcards.length - 1) { currentCard++; updateCardDisplay(); }
+        }
+
+        function previousCard() {
+            if (currentCard > 0) { currentCard--; updateCardDisplay(); }
+        }
+
+        function rateCard(rating) {
+            nextCard();
+            showToast("Rating saved!");
+        }
+
+        function addCardFromModal() {
+            const f = document.getElementById('new-card-front').value;
+            const b = document.getElementById('new-card-back').value;
+            if (f && b) {
+                flashcards.push({front: f, back: b});
+                updateCardDisplay();
+                document.getElementById('new-card-front').value = '';
+                document.getElementById('new-card-back').value = '';
+                hideModal('add-card-modal');
+                showToast("Card added!");
+            }
+        }
+
+        // Initialize default systems on load
+        window.addEventListener('DOMContentLoaded', () => {
+            setVideoSource('jfKfPfyJRdk'); // Initial low-fi study track
+            updateCardDisplay();
+        });
+    </script>
+</body>
+</html>
