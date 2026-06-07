@@ -34,6 +34,7 @@
         
         .window.focused {
             box-shadow: 0 16px 56px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(99, 102, 241, 0.3);
+            z-index: 50 !important;
         }
         
         .window-header {
@@ -84,7 +85,6 @@
             border-radius: 0 0 4px 0;
         }
         
-        /* Streak flames */
         .streak-container {
             display: flex;
             gap: 4px;
@@ -106,13 +106,6 @@
         .streak-flame:hover {
             transform: scale(1.1);
             box-shadow: 0 4px 12px rgba(234, 88, 12, 0.5);
-        }
-        
-        .streak-flame svg {
-            width: 16px;
-            height: 16px;
-            fill: white;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
         }
         
         .flashcard {
@@ -144,6 +137,7 @@
             padding: 24px;
             text-align: center;
             border-radius: 16px;
+            background: white;
         }
         
         .flashcard-front {
@@ -188,329 +182,93 @@
             transform: translateY(0);
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            color: white;
-        }
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
         
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
+        .markdown-body { line-height: 1.7; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1em; margin-bottom: 0.5em; font-weight: 600; }
+        .markdown-body p { margin-bottom: 0.75em; }
+        .markdown-body code { background: rgba(0, 0, 0, 0.06); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+        .markdown-body pre { background: #1e293b; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 0.75em 0; }
+        .markdown-body ul, .markdown-body ol { margin-left: 1.5em; margin-bottom: 0.75em; list-style-type: disc; }
         
-        .btn-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-        
-        /* Markdown Styles */
-        .markdown-body {
-            line-height: 1.7;
-        }
-        
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-            margin-top: 1em;
-            margin-bottom: 0.5em;
-            font-weight: 600;
-        }
-        
-        .markdown-body p {
-            margin-bottom: 0.75em;
-        }
-        
-        .markdown-body code {
-            background: rgba(0, 0, 0, 0.06);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9em;
-        }
-        
-        .markdown-body pre {
-            background: #1e293b;
-            color: #e2e8f0;
-            padding: 12px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 0.75em 0;
-        }
-        
-        .markdown-body ul, .markdown-body ol {
-            margin-left: 1.5em;
-            margin-bottom: 0.75em;
-        }
-        
-        .markdown-body blockquote {
-            border-left: 3px solid #6366f1;
-            padding-left: 1em;
-            margin: 0.75em 0;
-            color: #6b7280;
-        }
-        
-        /* Modal Styles */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease;
         }
-        
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
+        .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal {
-            background: white;
-            border-radius: 20px;
-            padding: 28px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            transform: scale(0.9) translateY(20px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white; border-radius: 20px; padding: 28px;
+            max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
+            transform: scale(0.9) translateY(20px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
-        
-        .modal-overlay.active .modal {
-            transform: scale(1) translateY(0);
-        }
-        
-        .modal-header {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: #1f2937;
-        }
-        
+        .modal-overlay.active .modal { transform: scale(1) translateY(0); }
+        .modal-header { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #1f2937; }
         .modal-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.2s;
-            margin-bottom: 12px;
+            width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb;
+            border-radius: 12px; font-size: 15px; transition: all 0.2s; margin-bottom: 12px;
         }
+        .modal-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        textarea.modal-input { min-height: 120px; resize: vertical; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
         
-        .modal-input:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.04); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
         
-        textarea.modal-input {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-        
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.04);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.25);
-        }
-        
-        /* Page Navigation */
         .page {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(135deg, #fdf6e3 0%, #faedcd 50%, #f5e6d3 100%);
-            display: none;
-            z-index: 100;
+            display: none; z-index: 100;
         }
-        
-        .page.active {
-            display: block;
-        }
+        .page.active { display: block; }
         
         .nav-bar {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 8px 16px;
-            display: flex;
-            gap: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            z-index: 200;
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-radius: 16px; padding: 8px 16px; display: flex; gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); z-index: 200;
         }
-        
         .nav-btn {
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s;
-            background: transparent;
-            color: #6b7280;
+            padding: 10px 20px; border-radius: 12px; font-weight: 500; font-size: 14px;
+            transition: all 0.2s; background: transparent; color: #6b7280;
         }
-        
-        .nav-btn:hover {
-            background: rgba(99, 102, 241, 0.1);
-            color: #6366f1;
-        }
-        
+        .nav-btn:hover { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
         .nav-btn.active {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
         
-        /* FSRS Rating Buttons */
-        .fsrs-rating {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 16px;
-        }
-        
+        .fsrs-rating { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
         .fsrs-btn {
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.2s;
-            border: 2px solid transparent;
+            padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 13px;
+            transition: all 0.2s; border: 2px solid transparent;
         }
+        .fsrs-btn-again { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+        .fsrs-btn-hard { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
+        .fsrs-btn-good { background: #dbeafe; color: #2563eb; border-color: #93c5fd; }
+        .fsrs-btn-easy { background: #d1fae5; color: #059669; border-color: #6ee7b7; }
+        .fsrs-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
         
-        .fsrs-btn-again {
-            background: #fee2e2;
-            color: #dc2626;
-            border-color: #fca5a5;
-        }
-        
-        .fsrs-btn-hard {
-            background: #fef3c7;
-            color: #d97706;
-            border-color: #fcd34d;
-        }
-        
-        .fsrs-btn-good {
-            background: #dbeafe;
-            color: #2563eb;
-            border-color: #93c5fd;
-        }
-        
-        .fsrs-btn-easy {
-            background: #d1fae5;
-            color: #059669;
-            border-color: #6ee7b7;
-        }
-        
-        .fsrs-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Note file tabs */
-        .note-tabs {
-            display: flex;
-            gap: 4px;
-            padding: 0 4px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            background: rgba(249, 250, 251, 0.5);
-        }
-        
-        .note-tab {
-            padding: 8px 14px;
-            border-radius: 8px 8px 0 0;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #6b7280;
-            background: transparent;
-            border: none;
-        }
-        
-        .note-tab:hover {
-            background: rgba(99, 102, 241, 0.1);
-            color: #6366f1;
-        }
-        
-        .note-tab.active {
-            background: white;
-            color: #6366f1;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Toast notifications */
         .toast {
-            position: fixed;
-            bottom: 100px;
-            right: 24px;
-            background: white;
-            padding: 14px 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transform: translateX(400px);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1001;
+            position: fixed; bottom: 100px; right: 24px; background: white;
+            padding: 14px 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            display: flex; align-items: center; gap: 10px; transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1001;
         }
-        
-        .toast.show {
-            transform: translateX(0);
-        }
-        
-        .toast.success {
-            border-left: 4px solid #10b981;
-        }
-        
-        .toast.error {
-            border-left: 4px solid #ef4444;
-        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
     </style>
 </head>
 <body class="p-4">
-    <!-- Main Dashboard Page -->
-    <div id="page-dashboard" class="page active">
-        <!-- Window: YouTube Player -->
+    <div id="dashboard" class="page active">
         <div id="window-youtube" class="window" style="left: 20%; top: 12%; width: 55%; height: 55%; z-index: 10;">
             <div class="window-header">
                 <span class="window-title">
@@ -520,12 +278,11 @@
                 <button onclick="showModal('video-modal')" class="btn px-4 py-1.5 text-xs btn-primary hover:shadow-lg">Change Video</button>
             </div>
             <div class="h-full pb-2 pt-2 px-3">
-                <iframe id="youtube-player" class="w-full h-full rounded-xl" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <iframe id="youtube-player" class="w-full h-full rounded-xl" src="https://www.youtube.com/embed/jfKfPfyJRdk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
             <div class="resize-handle" data-resize></div>
         </div>
 
-        <!-- Window: Timer & Streak -->
         <div id="window-timer" class="window" style="left: 5%; top: 5%; width: 300px; height: 260px; z-index: 5;">
             <div class="window-header">
                 <span class="window-title">
@@ -545,7 +302,7 @@
                 </div>
                 <div class="flex justify-between items-center pt-4 border-t border-gray-100">
                     <div class="streak-container">
-                        <div id="streak-flames"></div>
+                        <div id="streak-flames">🔥 1</div>
                     </div>
                     <select id="timer-mode" onchange="changeTimerMode()" class="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white font-medium text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400">
                         <option value="25">Pomodoro (25)</option>
@@ -557,7 +314,6 @@
             <div class="resize-handle" data-resize></div>
         </div>
 
-        <!-- Window: Task Manager -->
         <div id="window-tasks" class="window" style="right: 5%; top: 5%; width: 320px; height: 300px; z-index: 5;">
             <div class="window-header">
                 <span class="window-title">
@@ -573,32 +329,28 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     </button>
                 </div>
-                <div id="task-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+                <div id="task-list" class="flex-1 overflow-y-auto space-y-2 pr-1 pb-10"></div>
             </div>
             <div class="resize-handle" data-resize></div>
         </div>
 
-        <!-- Window: Notes -->
-        <div id="window-notes" class="window" style="left: 5%; bottom: 5%; width: 50%; height: 38%; z-index: 5;">
+        <div id="window-notes" class="window flex flex-col" style="left: 5%; bottom: 5%; width: 50%; height: 38%; z-index: 5;">
             <div class="window-header">
                 <span class="window-title">
                     <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     Notes
                 </span>
                 <div class="flex gap-2">
-                    <button onclick="showModal('new-note-modal')" class="btn text-xs px-3 py-1.5 btn-success font-medium">+ New</button>
                     <button onclick="toggleNoteView()" class="btn text-xs px-3 py-1.5 bg-gray-100 text-gray-600 font-medium" id="note-view-toggle">Preview</button>
                 </div>
             </div>
-            <div class="note-tabs" id="note-tabs"></div>
-            <div class="p-3 pt-2 h-full">
-                <textarea id="notes-content" class="w-full h-full resize-none p-4 text-sm border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 font-mono" placeholder="Write your notes in Markdown..."></textarea>
-                <div id="notes-preview" class="w-full h-full overflow-y-auto p-4 markdown-body hidden"></div>
+            <div class="p-3 pt-2 flex-1 flex flex-col overflow-hidden">
+                <textarea id="notes-content" class="w-full flex-1 resize-none p-4 text-sm border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 font-mono" placeholder="Write your notes in Markdown..."># My First Note&#10;Write markdown here!</textarea>
+                <div id="notes-preview" class="w-full flex-1 overflow-y-auto p-4 markdown-body hidden bg-white rounded-xl"></div>
             </div>
             <div class="resize-handle" data-resize></div>
         </div>
 
-        <!-- Window: Flashcards -->
         <div id="window-flashcards" class="window" style="right: 5%; bottom: 5%; width: 380px; height: 350px; z-index: 5;">
             <div class="window-header">
                 <span class="window-title">
@@ -608,7 +360,7 @@
                 <button onclick="navigateToPage('flashcards-page')" class="btn text-xs px-4 py-1.5 btn-primary font-medium">Open Full</button>
             </div>
             <div class="p-5 pt-3 h-full flex flex-col">
-                <div id="flashcard-container-mini" class="flashcard flex-1 mb-4">
+                <div id="flashcard-container-mini" class="flashcard flex-1 mb-4" onclick="flipCard()">
                     <div class="flashcard-inner" id="flashcard-inner-mini">
                         <div class="flashcard-front">
                             <div class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Question</div>
@@ -620,7 +372,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center pb-8">
                     <button onclick="previousCard()" class="btn px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 text-sm font-medium">← Prev</button>
                     <span id="flashcard-counter-mini" class="text-sm text-gray-400 font-medium">0 / 0</span>
                     <button onclick="nextCard()" class="btn px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 text-sm font-medium">Next →</button>
@@ -630,8 +382,7 @@
         </div>
     </div>
 
-    <!-- Flashcards Full Page -->
-    <div id="page-flashcards" class="page">
+    <div id="flashcards-page" class="page">
         <div class="h-full flex flex-col items-center justify-center p-8">
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent mb-2">Flashcard Study</h1>
@@ -640,10 +391,9 @@
             
             <div class="flex gap-4 mb-8">
                 <button onclick="showModal('add-card-modal')" class="btn px-6 py-3 btn-success font-semibold shadow-lg text-lg">+ Add Card</button>
-                <button onclick="renderEditCardsContainer(); showModal('edit-cards-modal')" class="btn px-6 py-3 bg-purple-500 text-white font-semibold shadow-lg text-lg hover:bg-purple-600">Edit Deck</button>
             </div>
             
-            <div id="flashcard-container-full" class="flashcard w-full max-w-2xl h-80 mb-8">
+            <div id="flashcard-container-full" class="flashcard w-full max-w-2xl h-80 mb-8" onclick="flipCard()">
                 <div class="flashcard-inner" id="flashcard-inner-full">
                     <div class="flashcard-front shadow-2xl">
                         <div class="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wider">Question</div>
@@ -656,11 +406,11 @@
                 </div>
             </div>
             
-            <div id="fsrs-controls" class="fsrs-rating hidden">
-                <button onclick="rateCard(0)" class="fsrs-btn fsrs-btn-again">Again<br><span class="text-xs opacity-70" id="again-time">&lt;1m</span></button>
-                <button onclick="rateCard(1)" class="fsrs-btn fsrs-btn-hard">Hard<br><span class="text-xs opacity-70" id="hard-time">2d</span></button>
-                <button onclick="rateCard(2)" class="fsrs-btn fsrs-btn-good">Good<br><span class="text-xs opacity-70" id="good-time">4d</span></button>
-                <button onclick="rateCard(3)" class="fsrs-btn fsrs-btn-easy">Easy<br><span class="text-xs opacity-70" id="easy-time">7d</span></button>
+            <div id="fsrs-controls" class="fsrs-rating hidden mb-6">
+                <button onclick="rateCard(0)" class="fsrs-btn fsrs-btn-again">Again<br><span class="text-xs opacity-70">&lt;1m</span></button>
+                <button onclick="rateCard(1)" class="fsrs-btn fsrs-btn-hard">Hard<br><span class="text-xs opacity-70">2d</span></button>
+                <button onclick="rateCard(2)" class="fsrs-btn fsrs-btn-good">Good<br><span class="text-xs opacity-70">4d</span></button>
+                <button onclick="rateCard(3)" class="fsrs-btn fsrs-btn-easy">Easy<br><span class="text-xs opacity-70">7d</span></button>
             </div>
             
             <div id="study-nav" class="flex gap-4">
@@ -671,8 +421,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
-    <!-- Video Modal -->
     <div id="video-modal" class="modal-overlay" onclick="hideModal('video-modal')">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">Change Video</div>
@@ -684,19 +432,6 @@
         </div>
     </div>
 
-    <!-- New Note Modal -->
-    <div id="new-note-modal" class="modal-overlay" onclick="hideModal('new-note-modal')">
-        <div class="modal" onclick="event.stopPropagation()">
-            <div class="modal-header">Create New Note</div>
-            <input type="text" id="new-note-name" class="modal-input" placeholder="Note name...">
-            <div class="modal-actions">
-                <button onclick="hideModal('new-note-modal')" class="btn px-5 py-2.5 bg-gray-200 text-gray-700 font-medium">Cancel</button>
-                <button onclick="createNewNote()" class="btn px-5 py-2.5 btn-success font-medium">Create</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Card Modal -->
     <div id="add-card-modal" class="modal-overlay" onclick="hideModal('add-card-modal')">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">Add Flashcard</div>
@@ -709,27 +444,12 @@
         </div>
     </div>
 
-    <!-- Edit Cards Modal -->
-    <div id="edit-cards-modal" class="modal-overlay" onclick="hideModal('edit-cards-modal')">
-        <div class="modal modal-max" onclick="event.stopPropagation()" style="max-width: 700px;">
-            <div class="modal-header">Edit Flashcards</div>
-            <div id="edit-cards-container" class="space-y-4 max-h-96 overflow-y-auto"></div>
-            <div class="modal-actions">
-                <button onclick="hideModal('edit-cards-modal')" class="btn px-5 py-2.5 bg-gray-200 text-gray-700 font-medium">Close</button>
-                <button onclick="addCardFromEdit()" class="btn px-5 py-2.5 btn-success font-medium">+ Add Another</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navigation Bar -->
     <div class="nav-bar">
         <button onclick="navigateToPage('dashboard')" class="nav-btn active" id="nav-dashboard">Dashboard</button>
         <button onclick="navigateToPage('flashcards-page')" class="nav-btn" id="nav-flashcards-page">Flashcards</button>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast">
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
         <span id="toast-message">Saved successfully!</span>
     </div>
 
@@ -738,6 +458,11 @@
         let activeWindow = null;
         let activeAction = null;
         let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+        function bringToFront(win) {
+            document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+            win.classList.add('focused');
+        }
 
         document.querySelectorAll('.window').forEach(window => {
             const header = window.querySelector('.window-header');
@@ -786,383 +511,205 @@
         });
 
         document.addEventListener('mouseup', () => {
-            if (activeWindow) {
-                saveWindowPosition(activeWindow.id);
-            }
             activeWindow = null;
             activeAction = null;
         });
 
-        function bringToFront(window) {
-            document.querySelectorAll('.window').forEach(w => w.style.zIndex = 5);
-            window.style.zIndex = 10;
+        // ==================== UTILS ====================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // ==================== LOCAL STORAGE HELPERS ====================
-        function saveToStorage(key, data) {
-            localStorage.setItem(key, JSON.stringify(data));
+        function showModal(id) { document.getElementById(id).classList.add('active'); }
+        function hideModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function navigateToPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`nav-${pageId}`).classList.add('active');
         }
 
-        function loadFromStorage(key, defaultValue) {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : defaultValue;
-        }
-
-        function saveWindowPosition(windowId) {
-            const window = document.getElementById(windowId);
-            const positions = loadFromStorage('windowPositions', {});
-            positions[windowId] = {
-                left: window.style.left,
-                top: window.style.top,
-                width: window.style.width,
-                height: window.style.height
-            };
-            saveToStorage('windowPositions', positions);
-        }
-
-        function loadWindowPositions() {
-            const positions = loadFromStorage('windowPositions', {});
-            Object.entries(positions).forEach(([id, pos]) => {
-                const window = document.getElementById(id);
-                if (window) {
-                    window.style.left = pos.left;
-                    window.style.top = pos.top;
-                    window.style.width = pos.width;
-                    window.style.height = pos.height;
-                }
-            });
+        // ==================== VIDEO PLAYER ====================
+        function changeVideoFromModal() {
+            const url = document.getElementById('video-url-input').value;
+            let videoId = url.split('v=')[1];
+            if (videoId) {
+                const ampersandPosition = videoId.indexOf('&');
+                if (ampersandPosition != -1) videoId = videoId.substring(0, ampersandPosition);
+                document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}`;
+                showToast("Video updated!");
+            }
+            hideModal('video-modal');
         }
 
         // ==================== TIMER ====================
-        let timerInterval = null;
+        let timerInterval;
         let timeLeft = 25 * 60;
-        let isRunning = false;
-        let currentMode = 25;
 
         function updateTimerDisplay() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            document.getElementById('timer-display').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
         }
 
         function startTimer() {
-            if (isRunning) return;
-            isRunning = true;
-            document.getElementById('timer-status').textContent = 'Focusing...';
+            if (timerInterval) return;
+            document.getElementById('timer-status').innerText = "Focusing...";
             timerInterval = setInterval(() => {
                 if (timeLeft > 0) {
                     timeLeft--;
                     updateTimerDisplay();
-                    saveTimerState();
                 } else {
-                    completeTimer();
+                    pauseTimer();
+                    showToast("Time is up!", "success");
+                    document.getElementById('timer-status').innerText = "Done!";
                 }
             }, 1000);
         }
 
         function pauseTimer() {
-            isRunning = false;
             clearInterval(timerInterval);
-            document.getElementById('timer-status').textContent = 'Paused';
+            timerInterval = null;
+            document.getElementById('timer-status').innerText = "Paused";
         }
 
         function resetTimer() {
             pauseTimer();
-            timeLeft = currentMode * 60;
-            updateTimerDisplay();
-            document.getElementById('timer-status').textContent = 'Ready to focus';
-            saveTimerState();
+            changeTimerMode();
+            document.getElementById('timer-status').innerText = "Ready to focus";
         }
 
         function changeTimerMode() {
-            currentMode = parseInt(document.getElementById('timer-mode').value);
-            resetTimer();
-        }
-
-        function completeTimer() {
+            const mode = document.getElementById('timer-mode').value;
+            timeLeft = parseInt(mode) * 60;
+            updateTimerDisplay();
             pauseTimer();
-            new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-            document.getElementById('timer-status').textContent = 'Time\'s up!';
-            
-            // Update streak if it's a pomodoro session
-            if (currentMode === 25) {
-                updateStreak();
-            }
-        }
-
-        function updateStreak() {
-            const today = new Date().toDateString();
-            const lastStudyDate = loadFromStorage('lastStudyDate', null);
-            let streak = loadFromStorage('studyStreak', 0);
-            
-            if (lastStudyDate !== today) {
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                
-                if (lastStudyDate === yesterday.toDateString()) {
-                    streak++;
-                } else if (lastStudyDate !== today) {
-                    streak = 1;
-                }
-                
-                saveToStorage('studyStreak', streak);
-                saveToStorage('lastStudyDate', today);
-                updateStreakDisplay(streak);
-            }
-        }
-
-        function updateStreakDisplay(streak) {
-            document.getElementById('streak-count').textContent = `${streak} day${streak !== 1 ? 's' : ''}`;
-        }
-
-        function saveTimerState() {
-            saveToStorage('timerState', {
-                timeLeft,
-                isRunning,
-                currentMode
-            });
-        }
-
-        function loadTimerState() {
-            const state = loadFromStorage('timerState', null);
-            if (state) {
-                timeLeft = state.timeLeft;
-                currentMode = state.currentMode;
-                document.getElementById('timer-mode').value = currentMode;
-                updateTimerDisplay();
-                if (state.isRunning) {
-                    startTimer();
-                }
-            }
-            updateStreakDisplay(loadFromStorage('studyStreak', 0));
         }
 
         // ==================== TASKS ====================
         let tasks = [];
 
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = '';
+            tasks.forEach((t, i) => {
+                list.innerHTML += `
+                    <div class="task-item p-2 border border-gray-100 rounded-lg flex items-center gap-2 cursor-pointer ${t.done ? 'completed' : ''}" onclick="toggleTask(${i})">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} class="w-4 h-4 text-emerald-500 rounded border-gray-300">
+                        <span class="text-sm text-gray-700">${t.text}</span>
+                    </div>
+                `;
+            });
+        }
+
         function addTask() {
             const input = document.getElementById('task-input');
-            const text = input.value.trim();
-            if (!text) return;
-            
-            tasks.push({ id: Date.now(), text, completed: false });
-            input.value = '';
-            renderTasks();
-            saveTasks();
+            if (input.value.trim()) {
+                tasks.push({ text: input.value.trim(), done: false });
+                input.value = '';
+                renderTasks();
+            }
         }
 
-        function toggleTask(id) {
-            tasks = tasks.map(task => 
-                task.id === id ? { ...task, completed: !task.completed } : task
-            );
+        function toggleTask(index) {
+            tasks[index].done = !tasks[index].done;
             renderTasks();
-            saveTasks();
-        }
-
-        function deleteTask(id) {
-            tasks = tasks.filter(task => task.id !== id);
-            renderTasks();
-            saveTasks();
         }
 
         function clearCompletedTasks() {
-            tasks = tasks.filter(task => !task.completed);
-            renderTasks();
-            saveTasks();
-        }
-
-        function renderTasks() {
-            const list = document.getElementById('task-list');
-            list.innerHTML = tasks.map(task => `
-                <div class="task-item ${task.completed ? 'completed' : ''} flex items-center gap-2 p-2 bg-gray-50 rounded-lg group">
-                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                        onchange="toggleTask(${task.id})"
-                        class="w-4 h-4 text-blue-500 rounded focus:ring-blue-400">
-                    <span class="flex-1 text-sm text-gray-700">${escapeHtml(task.text)}</span>
-                    <button onclick="deleteTask(${task.id})" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function saveTasks() {
-            saveToStorage('tasks', tasks);
-        }
-
-        function loadTasks() {
-            tasks = loadFromStorage('tasks', []);
+            tasks = tasks.filter(t => !t.done);
             renderTasks();
         }
 
         // ==================== NOTES ====================
-        let notesSaveTimeout = null;
-
-        document.getElementById('notes-content').addEventListener('input', () => {
-            clearTimeout(notesSaveTimeout);
-            notesSaveTimeout = setTimeout(() => {
-                saveNotes();
-                showSavedIndicator();
-            }, 500);
-        });
-
-        function saveNotes() {
-            const content = document.getElementById('notes-content').value;
-            saveToStorage('notes', content);
-        }
-
-        function loadNotes() {
-            const notes = loadFromStorage('notes', '');
-            document.getElementById('notes-content').value = notes;
-        }
-
-        function showSavedIndicator() {
-            const indicator = document.getElementById('notes-saved');
-            indicator.style.opacity = '1';
-            setTimeout(() => {
-                indicator.style.opacity = '0';
-            }, 1500);
+        let isPreview = false;
+        function toggleNoteView() {
+            isPreview = !isPreview;
+            const textarea = document.getElementById('notes-content');
+            const preview = document.getElementById('notes-preview');
+            const btn = document.getElementById('note-view-toggle');
+            
+            if (isPreview) {
+                preview.innerHTML = marked.parse(textarea.value);
+                textarea.classList.add('hidden');
+                preview.classList.remove('hidden');
+                btn.innerText = 'Edit';
+                btn.classList.add('bg-blue-100', 'text-blue-700');
+            } else {
+                textarea.classList.remove('hidden');
+                preview.classList.add('hidden');
+                btn.innerText = 'Preview';
+                btn.classList.remove('bg-blue-100', 'text-blue-700');
+            }
         }
 
         // ==================== FLASHCARDS ====================
-        let flashcards = [];
-        let currentCardIndex = 0;
+        let flashcards = [{front: "What does HTML stand for?", back: "HyperText Markup Language"}];
+        let currentCard = 0;
+        let isFlipped = false;
 
-        document.getElementById('flashcard-container').addEventListener('click', () => {
-            document.getElementById('flashcard-container').classList.toggle('flipped');
-        });
-
-        function addFlashcard() {
-            const front = prompt('Enter front of card:');
-            if (!front) return;
-            const back = prompt('Enter back of card:');
-            if (!back) return;
+        function updateCardDisplay() {
+            if (flashcards.length === 0) return;
+            document.getElementById('flashcard-front-text-mini').innerText = flashcards[currentCard].front;
+            document.getElementById('flashcard-back-text-mini').innerText = flashcards[currentCard].back;
+            document.getElementById('flashcard-counter-mini').innerText = `${currentCard + 1} / ${flashcards.length}`;
             
-            flashcards.push({ front, back });
-            currentCardIndex = flashcards.length - 1;
-            renderFlashcard();
-            saveFlashcards();
+            document.getElementById('flashcard-front-text-full').innerText = flashcards[currentCard].front;
+            document.getElementById('flashcard-back-text-full').innerText = flashcards[currentCard].back;
+            document.getElementById('flashcard-counter-full').innerText = `${currentCard + 1} / ${flashcards.length}`;
+            
+            isFlipped = false;
+            document.getElementById('flashcard-container-mini').classList.remove('flipped');
+            document.getElementById('flashcard-container-full').classList.remove('flipped');
+            document.getElementById('fsrs-controls').classList.add('hidden');
         }
 
-        function editFlashcards() {
-            const editorContent = flashcards.map((card, i) => 
-                `Card ${i + 1}:\nFront: ${card.front}\nBack: ${card.back}\n---`
-            ).join('\n\n') || 'No cards yet. Add some!';
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const action = isFlipped ? 'add' : 'remove';
+            document.getElementById('flashcard-container-mini').classList[action]('flipped');
+            document.getElementById('flashcard-container-full').classList[action]('flipped');
             
-            const newContent = prompt('Edit flashcards (format: Front\\nBack\\n---):', editorContent);
-            if (newContent === null) return;
-            
-            flashcards = newContent.split('---')
-                .map(block => block.trim())
-                .filter(block => block)
-                .map(block => {
-                    const lines = block.split('\n');
-                    const front = lines.find(l => l.startsWith('Front:'))?.replace('Front:', '').trim() || '';
-                    const back = lines.find(l => l.startsWith('Back:'))?.replace('Back:', '').trim() || '';
-                    return { front, back };
-                })
-                .filter(card => card.front || card.back);
-            
-            currentCardIndex = Math.min(currentCardIndex, Math.max(0, flashcards.length - 1));
-            renderFlashcard();
-            saveFlashcards();
+            if (isFlipped && document.getElementById('flashcards-page').classList.contains('active')) {
+                document.getElementById('fsrs-controls').classList.remove('hidden');
+            } else {
+                document.getElementById('fsrs-controls').classList.add('hidden');
+            }
         }
 
         function nextCard() {
-            if (flashcards.length === 0) return;
-            currentCardIndex = (currentCardIndex + 1) % flashcards.length;
-            renderFlashcard();
+            if (currentCard < flashcards.length - 1) { currentCard++; updateCardDisplay(); }
         }
 
         function previousCard() {
-            if (flashcards.length === 0) return;
-            currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
-            renderFlashcard();
+            if (currentCard > 0) { currentCard--; updateCardDisplay(); }
         }
 
-        function renderFlashcard() {
-            const container = document.getElementById('flashcard-container');
-            container.classList.remove('flipped');
-            
-            setTimeout(() => {
-                if (flashcards.length > 0) {
-                    const card = flashcards[currentCardIndex];
-                    document.getElementById('flashcard-front-text').textContent = card.front;
-                    document.getElementById('flashcard-back-text').textContent = card.back;
-                    document.getElementById('flashcard-counter').textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
-                } else {
-                    document.getElementById('flashcard-front-text').textContent = 'Click to flip';
-                    document.getElementById('flashcard-back-text').textContent = 'Add your flashcards to get started';
-                    document.getElementById('flashcard-counter').textContent = '0 / 0';
-                }
-            }, 150);
+        function rateCard(rating) {
+            nextCard();
+            showToast("Rating saved!");
         }
 
-        function saveFlashcards() {
-            saveToStorage('flashcards', { cards: flashcards, currentIndex: currentCardIndex });
-        }
-
-        function loadFlashcards() {
-            const data = loadFromStorage('flashcards', { cards: [], currentIndex: 0 });
-            flashcards = data.cards;
-            currentCardIndex = data.currentIndex;
-            renderFlashcard();
-        }
-
-        // ==================== YOUTUBE VIDEO ====================
-        function changeVideo() {
-            const url = prompt('Enter YouTube URL:');
-            if (!url) return;
-            
-            const videoId = extractVideoId(url);
-            if (videoId) {
-                document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-                saveToStorage('youtubeVideo', videoId);
-            } else {
-                alert('Invalid YouTube URL');
+        function addCardFromModal() {
+            const f = document.getElementById('new-card-front').value;
+            const b = document.getElementById('new-card-back').value;
+            if (f && b) {
+                flashcards.push({front: f, back: b});
+                updateCardDisplay();
+                document.getElementById('new-card-front').value = '';
+                document.getElementById('new-card-back').value = '';
+                hideModal('add-card-modal');
+                showToast("Card added!");
             }
         }
 
-        function extractVideoId(url) {
-            const patterns = [
-                /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
-                /youtube\.com\/embed\/([^&\n?#]+)/,
-                /youtube\.com\/v\/([^&\n?#]+)/
-            ];
-            
-            for (const pattern of patterns) {
-                const match = url.match(pattern);
-                if (match) return match[1];
-            }
-            return null;
-        }
-
-        function loadYoutubeVideo() {
-            const videoId = loadFromStorage('youtubeVideo', 'dQw4w9WgXcQ');
-            document.getElementById('youtube-player').src = `https://www.youtube.com/embed/${videoId}`;
-        }
-
-        // ==================== UTILITIES ====================
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            initWindowSystem();
-            loadWindowPositions();
-            loadTimerState();
-            loadTasks();
-            loadNotes();
-            loadFlashcards();
-            loadYoutubeVideo();
-            
-            // Set initial focus state
-            bringToFront(document.getElementById('window-youtube'));
-        });
+        // Initialize display
+        updateCardDisplay();
     </script>
 </body>
 </html>
