@@ -357,7 +357,10 @@
                     <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                     Flashcards
                 </span>
-                <button onclick="navigateToPage('flashcards-page')" class="btn text-xs px-4 py-1.5 btn-primary font-medium">Open Full</button>
+                <div class="flex gap-2">
+                    <button onclick="deleteCurrentCard()" class="btn text-xs px-3 py-1.5 bg-red-100 text-red-600 font-medium hover:bg-red-200" title="Delete current card">🗑️</button>
+                    <button onclick="navigateToPage('flashcards-page')" class="btn text-xs px-4 py-1.5 btn-primary font-medium">Open Full</button>
+                </div>
             </div>
             <div class="p-5 pt-3 h-full flex flex-col">
                 <div id="flashcard-container-mini" class="flashcard flex-1 mb-4" onclick="flipCard()">
@@ -391,6 +394,7 @@
             
             <div class="flex gap-4 mb-8">
                 <button onclick="showModal('add-card-modal')" class="btn px-6 py-3 btn-success font-semibold shadow-lg text-lg">+ Add Card</button>
+                <button onclick="deleteCurrentCard()" class="btn px-6 py-3 btn-danger font-semibold shadow-lg text-lg">🗑️ Delete Card</button>
             </div>
             
             <div id="flashcard-container-full" class="flashcard w-full max-w-2xl h-80 mb-8" onclick="flipCard()">
@@ -556,6 +560,7 @@
 
             if (videoId.trim()) {
                 setVideoSource(videoId.trim());
+                localStorage.setItem('studyflow-video', videoId.trim());
                 showToast("Video updated!");
             } else {
                 showToast("Invalid URL or Video ID", "error");
@@ -608,25 +613,44 @@
         }
 
         // ==================== TASKS ====================
-        let tasks = [];
+        let tasks = JSON.parse(localStorage.getItem('studyflow-tasks')) || [];
+
+        function saveTasks() {
+            localStorage.setItem('studyflow-tasks', JSON.stringify(tasks));
+        }
 
         function renderTasks() {
             const list = document.getElementById('task-list');
             list.innerHTML = '';
+            if (tasks.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-400 text-sm py-4">No tasks yet. Add one above!</div>';
+                return;
+            }
             tasks.forEach((t, i) => {
                 list.innerHTML += `
-                    <div class="task-item p-2 border border-gray-100 rounded-lg flex items-center gap-2 cursor-pointer ${t.done ? 'completed' : ''}" onclick="toggleTask(${i})">
-                        <input type="checkbox" ${t.done ? 'checked' : ''} class="w-4 h-4 text-emerald-500 rounded border-gray-300">
-                        <span class="text-sm text-gray-700">${t.text}</span>
+                    <div class="task-item p-2 border border-gray-100 rounded-lg flex items-center gap-2 cursor-pointer ${t.done ? 'completed' : ''}" onclick="toggleTask(${i}); event.stopPropagation();">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} class="w-4 h-4 text-emerald-500 rounded border-gray-300" onclick="event.stopPropagation();">
+                        <span class="text-sm text-gray-700 flex-1">${escapeHtml(t.text)}</span>
+                        <button onclick="deleteTask(${i}); event.stopPropagation();" class="text-gray-400 hover:text-red-500 transition-colors" title="Delete task">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                     </div>
                 `;
             });
         }
 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function addTask() {
             const input = document.getElementById('task-input');
-            if (input.value.trim()) {
-                tasks.push({ text: input.value.trim(), done: false });
+            const text = input.value.trim();
+            if (text) {
+                tasks.push({ text: text, done: false });
+                saveTasks();
                 input.value = '';
                 renderTasks();
             }
@@ -634,16 +658,33 @@
 
         function toggleTask(index) {
             tasks[index].done = !tasks[index].done;
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
             renderTasks();
         }
 
         function clearCompletedTasks() {
-            tasks = tasks.filter(t => !t.done);
-            renderTasks();
+            if (tasks.some(t => t.done)) {
+                tasks = tasks.filter(t => !t.done);
+                saveTasks();
+                renderTasks();
+                showToast("Completed tasks cleared!");
+            }
         }
 
         // ==================== NOTES ====================
         let isPreview = false;
+        let notesContent = localStorage.getItem('studyflow-notes') || '# My First Note\nWrite markdown here!';
+        
+        function saveNotes() {
+            localStorage.setItem('studyflow-notes', document.getElementById('notes-content').value);
+        }
+
         function toggleNoteView() {
             isPreview = !isPreview;
             const textarea = document.getElementById('notes-content');
@@ -664,13 +705,38 @@
             }
         }
 
+        // Auto-save notes on change
+        document.addEventListener('DOMContentLoaded', () => {
+            const notesTextarea = document.getElementById('notes-content');
+            notesTextarea.value = notesContent;
+            notesTextarea.addEventListener('input', saveNotes);
+        });
+
         // ==================== FLASHCARDS ====================
-        let flashcards = [{front: "What does HTML stand for?", back: "HyperText Markup Language"}];
+        let flashcards = JSON.parse(localStorage.getItem('studyflow-flashcards')) || [{front: "What does HTML stand for?", back: "HyperText Markup Language"}];
         let currentCard = 0;
         let isFlipped = false;
 
+        function saveFlashcards() {
+            localStorage.setItem('studyflow-flashcards', JSON.stringify(flashcards));
+        }
+
         function updateCardDisplay() {
-            if (flashcards.length === 0) return;
+            if (flashcards.length === 0) {
+                document.getElementById('flashcard-front-text-mini').innerText = 'No cards yet';
+                document.getElementById('flashcard-back-text-mini').innerText = 'Add some flashcards!';
+                document.getElementById('flashcard-counter-mini').innerText = '0 / 0';
+                
+                document.getElementById('flashcard-front-text-full').innerText = 'No cards yet';
+                document.getElementById('flashcard-back-text-full').innerText = 'Add some flashcards to start studying!';
+                document.getElementById('flashcard-counter-full').innerText = '0 / 0';
+                
+                isFlipped = false;
+                document.getElementById('flashcard-container-mini').classList.remove('flipped');
+                document.getElementById('flashcard-container-full').classList.remove('flipped');
+                document.getElementById('fsrs-controls').classList.add('hidden');
+                return;
+            }
             document.getElementById('flashcard-front-text-mini').innerText = flashcards[currentCard].front;
             document.getElementById('flashcard-back-text-mini').innerText = flashcards[currentCard].back;
             document.getElementById('flashcard-counter-mini').innerText = `${currentCard + 1} / ${flashcards.length}`;
@@ -686,6 +752,7 @@
         }
 
         function flipCard() {
+            if (flashcards.length === 0) return;
             isFlipped = !isFlipped;
             const action = isFlipped ? 'add' : 'remove';
             document.getElementById('flashcard-container-mini').classList[action]('flipped');
@@ -699,10 +766,12 @@
         }
 
         function nextCard() {
+            if (flashcards.length === 0) return;
             if (currentCard < flashcards.length - 1) { currentCard++; updateCardDisplay(); }
         }
 
         function previousCard() {
+            if (flashcards.length === 0) return;
             if (currentCard > 0) { currentCard--; updateCardDisplay(); }
         }
 
@@ -716,6 +785,8 @@
             const b = document.getElementById('new-card-back').value;
             if (f && b) {
                 flashcards.push({front: f, back: b});
+                saveFlashcards();
+                currentCard = flashcards.length - 1;
                 updateCardDisplay();
                 document.getElementById('new-card-front').value = '';
                 document.getElementById('new-card-back').value = '';
@@ -724,10 +795,30 @@
             }
         }
 
+        function deleteCurrentCard() {
+            if (flashcards.length === 0) return;
+            if (confirm('Delete this flashcard?')) {
+                flashcards.splice(currentCard, 1);
+                saveFlashcards();
+                if (currentCard >= flashcards.length) {
+                    currentCard = Math.max(0, flashcards.length - 1);
+                }
+                updateCardDisplay();
+                showToast("Card deleted!");
+            }
+        }
+
         // Initialize default systems on load
         window.addEventListener('DOMContentLoaded', () => {
-            setVideoSource('jfKfPfyJRdk'); // Initial low-fi study track
+            // Load saved video or use default
+            const savedVideo = localStorage.getItem('studyflow-video');
+            if (savedVideo) {
+                setVideoSource(savedVideo);
+            } else {
+                setVideoSource('jfKfPfyJRdk'); // Initial low-fi study track
+            }
             updateCardDisplay();
+            renderTasks();
         });
     </script>
 </body>
